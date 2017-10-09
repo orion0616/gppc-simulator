@@ -27,6 +27,19 @@ def draw_path(map_array, path):
         map_array[step[1]][step[0]] = [255, 0, 0];
     return map_array
 
+def upsize_image(image):
+    img_array = np.asarray(image)
+    height = len(img_array)
+    width =  len(img_array[0])
+
+    if height > 600 or width > 1000:
+        return image
+    img_array.flags.writeable = True
+    zipped = np.array(list(zip(img_array, img_array)))
+    horizontal_double = np.array(list(map(lambda c: np.ndarray.flatten(np.array(list(zip(c[0],c[1])))), zipped))).reshape(height,width*2,3)
+    doubled = np.ndarray.flatten(np.array(list(zip(horizontal_double,horizontal_double)))).reshape(height*2,width*2,3)
+    return Image.fromarray(doubled, "RGB")
+
 def create_image(map_data, path):
     color_map = {".": [255, 255, 255],
                 "G": [255, 255, 255],
@@ -42,6 +55,7 @@ def create_image(map_data, path):
     map_array = draw_path(map_array, path)
 
     image = Image.fromarray(map_array, "RGB")
+    image = upsize_image(image)
     return image
 
 def validate_path(mapData, path):
