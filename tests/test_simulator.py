@@ -10,16 +10,12 @@ class TestSimulator(unittest.TestCase):
                     [90,188],[89,188],[88,188],[87,188]]
         self.assertEqual(simulator.convert_points(line), expected)
 
-    def test_upsize_image_ok(self):
-        image = Image.fromarray(np.uint8([[[255,255,255],[0,0,0],[1,1,1]],[[3,3,3],[4,4,4],[5,5,5]]]), "RGB")
-        doubled = np.uint8([[[255,255,255],[255,255,255],[0,0,0],[0,0,0],[1,1,1],[1,1,1]],
-                             [[255,255,255],[255,255,255],[0,0,0],[0,0,0],[1,1,1],[1,1,1]],
-                             [[3,3,3],[3,3,3],[4,4,4],[4,4,4],[5,5,5],[5,5,5]],
-                             [[3,3,3],[3,3,3],[4,4,4],[4,4,4],[5,5,5],[5,5,5]]])
-        expected = Image.fromarray(doubled, "RGB")
+    def test_upsize_image_recursive(self):
+        image = Image.fromarray(np.uint8(np.zeros(180*180*3).reshape(180,180,3)), "RGB")
+        expected = Image.fromarray(np.uint8(np.zeros(720*720*3).reshape(720,720,3)), "RGB")
         self.assertEqual(simulator.upsize_image(image), expected)
 
-    def test_upsize_image_ng(self):
+    def test_upsize_image_no_recursive(self):
         expected = image = Image.fromarray(np.uint8(np.zeros(1200*800*3).reshape(1200,800,3)), "RGB")
         self.assertEqual(simulator.upsize_image(image), expected)
 
