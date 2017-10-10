@@ -1,6 +1,8 @@
-from PIL import Image
 import sys
+from PIL import Image
+from PIL import ImageTk
 import numpy as np
+import tkinter as tk
 
 def convert_points(line):
     return list(map(lambda s: list(map(int,s[1:].split(","))), line.split(")")[:-1]))
@@ -51,8 +53,9 @@ def create_image(map_data, path):
                 }
     # had better to resize when its size is too small.
     map_array = np.uint8(list(map(lambda s: list(map(lambda c: color_map[c], s)), map_data)))
-
-    map_array = draw_path(map_array, path)
+    
+    if path is not None:
+        map_array = draw_path(map_array, path)
 
     image = Image.fromarray(map_array, "RGB")
     image = upsize_image(image)
@@ -82,14 +85,106 @@ def validate_path(mapData, path):
             return False
     return True
 
+def button_pressed(label, num, mapData, paths, isNext):
+    print("a")
+    if isNext:
+        photo = ImageTk.PhotoImage(create_image(mapData, paths[300]))
+        label.image = photo
+    else:
+        photo = ImageTk.PhotoImage(create_image(mapData, paths[300]))
+        label.image = photo
+
+class Frame(tk.Frame):
+    def __init__(self,num, mapData, paths):
+        tk.Frame.__init__(self, None)
+        self.master.title("GPPC Simulator")
+        self.num = num
+        self.mapData = mapData
+        self.paths = paths
+        f_button = tk.Frame(self)
+        f_button.pack(side=tk.BOTTOM, padx=5, pady=5)
+
+        self.buff = tk.StringVar()
+        self.buff.set("Hello")
+        self.statusbar = tk.Label(self, textvariable = self.buff)
+        self.statusbar.pack(side=tk.BOTTOM)
+
+        if validate_path(self.mapData, self.paths[self.num]):
+            self.image = ImageTk.PhotoImage(create_image(self.mapData, self.paths[self.num]))
+            self.show_valid()
+        else:
+            self.image = ImageTk.PhotoImage(create_image(self.mapData, None))
+            self.show_invalid()
+        self.label = tk.Label(self, image=self.image)
+        self.label.pack()
+
+        next_button = tk.Button(f_button, text="Next", command=self.next_image)
+        prev_button = tk.Button(f_button, text="Prev", command=self.prev_image)
+        next_button.pack(side = tk.LEFT)
+        prev_button.pack(side = tk.LEFT)
+
+        self.now = tk.StringVar()
+        self.now.set(str(self.num+1))
+        self.entry = tk.Entry(f_button, textvariable = self.now)
+        self.entry.pack(side = tk.LEFT)
+        self.entry.bind('<Return>', self.move)
+
+        self.size = tk.StringVar()
+        self.size.set("/ " + str(len(paths)))
+        self.denominator = tk.Label(f_button, textvariable = self.size)
+        self.denominator.pack(side = tk.LEFT)
+        
+    def move(self, event):
+        if self.now.get():
+            value = eval(self.now.get())
+            if value < 1 or value > len(self.paths):
+                self.now.set("invalid number")
+                self.image = ImageTk.PhotoImage(create_image(self.mapData, None))
+                self.label.config(image = self.image)
+                self.show_invalid()
+                return
+            self.now.set(str(value))
+            self.num = value-1
+            self.validate_and_show()
+
+    def validate_and_show(self):
+        if validate_path(self.mapData, self.paths[self.num]):
+            self.image = ImageTk.PhotoImage(create_image(self.mapData, self.paths[self.num]))
+            self.label.config(image = self.image)
+            self.show_valid()
+        else:
+            self.image = ImageTk.PhotoImage(create_image(self.mapData, None))
+            self.label.config(image = self.image)
+            self.show_invalid()
+
+    def next_image(self):
+        if self.num == len(self.paths)-1:
+            self.num = 0
+        else:
+            self.num += 1
+        self.now.set(str(self.num+1))
+        self.validate_and_show()
+
+    def prev_image(self):
+        if self.num == 0:
+            self.num = len(self.paths) - 1
+        else:
+            self.num -= 1
+        self.now.set(str(self.num+1))
+        self.validate_and_show()
+
+    def show_valid(self):
+        self.buff.set("Valid Path")
+
+    def show_invalid(self):
+        self.buff.set("Invalid Path")
+
 def main():
     mapfile, paths = parse_path()
     mapData = load_map(mapfile)
-
-    # validate and simulate
-    if (validate_path(mapData, paths[300])):
-        image = create_image(mapData, paths[300])
-        image.save("path.png")
+    f = Frame(0, mapData, paths)
+    f.pack()
+    f.mainloop()
 
 if __name__ == "__main__":
     main()
