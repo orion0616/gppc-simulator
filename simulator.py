@@ -156,8 +156,10 @@ class Frame(tk.Frame):
 
         next_button = tk.Button(f_button, text="Next", command=self.next_image)
         prev_button = tk.Button(f_button, text="Prev", command=self.prev_image)
+        play_button = tk.Button(f_button, text="Play", command=self.play_multi)
         next_button.pack(side = tk.LEFT)
         prev_button.pack(side = tk.LEFT)
+        play_button.pack(side = tk.LEFT)
 
         self.now = tk.StringVar()
         self.now.set(str(self.num+1))
@@ -211,6 +213,26 @@ class Frame(tk.Frame):
             self.num -= 1
         self.now.set(str(self.num+1))
         self.validate_and_show()
+
+    def play_multi(self):
+        threading.Thread(target=self.play, name="a").start()
+
+    def play(self):
+        pre = "-".join(sys.argv[1].split("-")[:-1])
+        filename = "expanded/" + pre + "-" + str(self.num) + "-expanded.txt"
+        expanded = get_expanded(filename)
+        self.cache = create_image(self.mapData, None)
+        self.image = ImageTk.PhotoImage(self.cache)
+        self.label.config(image = self.image)
+        for i in range(len(expanded)):
+            self.cache = add_an_expand_to_image(self.cache, expanded[i:i+1][0])
+            self.image = ImageTk.PhotoImage(self.cache)
+            # self.image = ImageTk.PhotoImage(create_image_with_expanded(self.mapData, None, expanded[:i]))
+            self.label.config(image = self.image)
+            time.sleep(0.005)
+        self.image = ImageTk.PhotoImage(create_image_with_expanded(self.mapData, self.paths[self.num], expanded))
+        self.label.config(image = self.image)
+
 
     def show_valid(self):
         self.buff.set("Valid Path")
