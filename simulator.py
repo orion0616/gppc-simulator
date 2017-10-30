@@ -1,4 +1,6 @@
+import time
 import sys
+import threading
 from PIL import Image
 from PIL import ImageTk
 import numpy as np
@@ -13,7 +15,14 @@ def parse_path():
         lines = fin.readlines()
     mapfile = lines[0].strip()
     paths = list(map(convert_points, lines[1:]))
-    return (mapfile, paths) 
+    return (mapfile, paths)
+
+def get_expanded(filename):
+    with open(filename, 'r') as fin:
+        lines = fin.readlines()
+    expanded = list(map(convert_points, lines))
+    return expanded[0]
+
 
 def load_map(mapfile):
     with open(mapfile, 'r') as fin:
@@ -58,7 +67,32 @@ def create_image(map_data, path):
         map_array = draw_path(map_array, path)
 
     image = Image.fromarray(map_array, "RGB")
-    image = upsize_image(image)
+    # image = upsize_image(image)
+    return image
+
+def create_image_with_expanded(map_data, path, expanded):
+    color_map = {".": [255, 255, 255],
+                "G": [255, 255, 255],
+                "@": [  0,   0,   0],
+                "O": [  0,   0,   0],
+                "T": [  0, 255,   0],
+                "S": [142,   0, 204],
+                "W": [ 25, 135,  22]
+                }
+    # had better to resize when its size is too small.
+    map_array = np.uint8(list(map(lambda s: list(map(lambda c: color_map[c], s)), map_data)))
+
+    for step in expanded:
+        map_array[step[1]][step[0]] = [255, 160, 160];
+    if path is not None:
+        map_array = draw_path(map_array, path)
+
+    image = Image.fromarray(map_array, "RGB")
+    # image = upsize_image(image)
+    return image
+
+def add_an_expand_to_image(image, point):
+    image.putpixel((point[0],point[1]),(255,160,160))
     return image
 
 def validate_path(mapData, path):
@@ -110,10 +144,12 @@ class Frame(tk.Frame):
         self.statusbar.pack(side=tk.BOTTOM)
 
         if validate_path(self.mapData, self.paths[self.num]):
-            self.image = ImageTk.PhotoImage(create_image(self.mapData, self.paths[self.num]))
+            self.cache = create_image(self.mapData, self.paths[self.num])
+            self.image = ImageTk.PhotoImage(self.cache)
             self.show_valid()
         else:
-            self.image = ImageTk.PhotoImage(create_image(self.mapData, None))
+            self.cache = create_image(self.mapData, None)
+            self.image = ImageTk.PhotoImage(self.cache)
             self.show_invalid()
         self.label = tk.Label(self, image=self.image)
         self.label.pack()
@@ -139,7 +175,8 @@ class Frame(tk.Frame):
             value = eval(self.now.get())
             if value < 1 or value > len(self.paths):
                 self.now.set("invalid number")
-                self.image = ImageTk.PhotoImage(create_image(self.mapData, None))
+                self.cache = create_image(self.mapData, None)
+                self.image = ImageTk.PhotoImage(self.cache)
                 self.label.config(image = self.image)
                 self.show_invalid()
                 return
@@ -149,11 +186,13 @@ class Frame(tk.Frame):
 
     def validate_and_show(self):
         if validate_path(self.mapData, self.paths[self.num]):
-            self.image = ImageTk.PhotoImage(create_image(self.mapData, self.paths[self.num]))
+            self.cache = create_image(self.mapData, self.paths[self.num])
+            self.image = ImageTk.PhotoImage(self.cache)
             self.label.config(image = self.image)
             self.show_valid()
         else:
-            self.image = ImageTk.PhotoImage(create_image(self.mapData, None))
+            self.cache = create_image(self.mapData, None)
+            self.image = ImageTk.PhotoImage(self.cache)
             self.label.config(image = self.image)
             self.show_invalid()
 
