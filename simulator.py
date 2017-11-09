@@ -125,6 +125,7 @@ class Window(QWidget):
         return validate_path(self.map_data, self.paths[self.num])
 
     def next_clicked(self):
+        self.expanded = []
         if self.num == len(self.paths)-1:
             self.num = 0
         else:
@@ -132,6 +133,7 @@ class Window(QWidget):
         self.update()
 
     def prev_clicked(self):
+        self.expanded = []
         if self.num == 0:
             self.num = len(self.paths) - 1
         else:
