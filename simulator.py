@@ -79,22 +79,19 @@ class Window(QWidget):
         self.initUI()
 
     def initUI(self):
-        next_button = QPushButton('Next', self)
-        prev_button = QPushButton('Prev', self)
-        play_button = QPushButton('Play', self)
-        next_button.resize(next_button.sizeHint())
-        prev_button.resize(prev_button.sizeHint())
-        play_button.resize(play_button.sizeHint())
-        next_button.move(0, self.height + 50)
-        prev_button.move(80, self.height + 50)
-        play_button.move(160, self.height + 50)
-        next_button.clicked.connect(self.next_clicked)
-        prev_button.clicked.connect(self.prev_clicked)
-        play_button.clicked.connect(self.play_multi)
+        self.setButton('Next', 0, self.height + 50, self.next_clicked)
+        self.setButton('Prev', 80, self.height + 50, self.prev_clicked)
+        self.setButton('Play', 160, self.height + 50, self.play_multi)
 
         self.setGeometry(0, 0, self.width + 50, self.height+100)
         self.setWindowTitle('Points')
         self.show()
+
+    def setButton(self, name, x, y, connect):
+        button = QPushButton(name, self)
+        button.resize(button.sizeHint())
+        button.move(x, y)
+        button.clicked.connect(connect)
 
     def paintEvent(self, e):
         self.qp = QPainter()
