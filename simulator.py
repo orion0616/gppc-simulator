@@ -178,7 +178,7 @@ class Window(QWidget):
         self.expanded = []
         for node in expanded:
             self.expanded.append(node)
-            time.sleep(0.01)
+            time.sleep(0.001)
             self.update()
 
     def play_f(self):
