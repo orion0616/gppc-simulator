@@ -91,6 +91,7 @@ class Window(QWidget):
         self.paths = paths
         self.expanded = []
         self.maxvalue = 0
+        self.minvalue = 0
         self.initUI()
 
     def initUI(self):
@@ -135,11 +136,11 @@ class Window(QWidget):
             if self.maxvalue == 0:
                 self.maxvalue = 255
             if self.mode == "f":
-                rate = expanded.f/self.maxvalue
+                rate = (expanded.f - self.minvalue)/(self.maxvalue - self.minvalue)
             if self.mode == "g":
-                rate = expanded.g/self.maxvalue
+                rate = (expanded.g - self.minvalue)/(self.maxvalue - self.minvalue)
             if self.mode == "h":
-                rate = expanded.h/self.maxvalue
+                rate = (expanded.h - self.minvalue)/(self.maxvalue - self.minvalue)
             red   = 127
             blue  = 255 - 255*rate
             green = 127 + 128*rate
@@ -171,10 +172,13 @@ class Window(QWidget):
         expanded = get_expanded(filename)
         if self.mode == "f":
             self.maxvalue = max(list(map(lambda lst: lst.f, expanded)))
+            self.minvalue = min(list(map(lambda lst: lst.f, expanded)))
         if self.mode == "g":
             self.maxvalue = max(list(map(lambda lst: lst.g, expanded)))
+            self.minvalue = min(list(map(lambda lst: lst.g, expanded)))
         if self.mode == "h":
             self.maxvalue = max(list(map(lambda lst: lst.h, expanded)))
+            self.minvalue = min(list(map(lambda lst: lst.h, expanded)))
         self.expanded = []
         for node in expanded:
             self.expanded.append(node)
