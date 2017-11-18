@@ -140,7 +140,7 @@ class Window(QWidget):
                 rate = expanded.g/self.maxvalue
             if self.mode == "h":
                 rate = expanded.h/self.maxvalue
-            red   = 255 - 128*rate
+            red   = 127
             blue  = 255 - 255*rate
             green = 127 + 128*rate
             self.qp.setPen(QColor.fromRgb(red , blue, green))
